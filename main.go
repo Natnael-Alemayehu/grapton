@@ -1,14 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"log"
 	"os"
 
+	_ "github.com/lib/pq"
 	"github.com/natnael-alemayehu/grapton/internal/config"
+	"github.com/natnael-alemayehu/grapton/internal/database"
 )
 
 type state struct {
 	cfg *config.Config
+	db  *database.Queries
 }
 
 func main() {
@@ -17,8 +21,16 @@ func main() {
 		log.Fatalf("Error Reading: %v", err)
 	}
 
-	s := &state{
+	db, err := sql.Open("postgres", cfg.DBURL)
+	if err != nil {
+		log.Fatalf("postgrs connection error: %v", err)
+	}
+
+	dbQueries := database.New(db)
+
+	programState := &state{
 		cfg: &cfg,
+		db:  dbQueries,
 	}
 
 	cmds := commands{
@@ -26,6 +38,9 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
+	cmds.register("register", handlerRegister)
+	cmds.register("reset", handleReset)
+	cmds.register("users", handleListUsers)
 
 	if len(os.Args) < 2 {
 		log.Fatal("Usage: cli <command> [args...]")
@@ -36,7 +51,7 @@ func main() {
 		arg:  os.Args[2:],
 	}
 
-	if err := cmds.run(s, cmd); err != nil {
+	if err := cmds.run(programState, cmd); err != nil {
 		log.Fatalf("Error: %v", err)
 	}
 
