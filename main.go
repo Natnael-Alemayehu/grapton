@@ -1,11 +1,15 @@
 package main
 
 import (
-	"fmt"
 	"log"
+	"os"
 
 	"github.com/natnael-alemayehu/grapton/internal/config"
 )
+
+type state struct {
+	cfg *config.Config
+}
 
 func main() {
 	cfg, err := config.Read()
@@ -13,14 +17,27 @@ func main() {
 		log.Fatalf("Error Reading: %v", err)
 	}
 
-	if err = cfg.SetUser("nate"); err != nil {
-		log.Fatalf("Setting User Reading: %v", err)
+	s := &state{
+		cfg: &cfg,
 	}
 
-	cfg, err = config.Read()
-	if err != nil {
-		log.Fatalf("Error Reading: %v", err)
+	cmds := commands{
+		commands: make(map[string]func(s *state, cmd command) error),
 	}
 
-	fmt.Printf("DBURL: %v \nCurrent Username: %v\n", cfg.DBURL, cfg.CurrentUserName)
+	cmds.register("login", handlerLogin)
+
+	if len(os.Args) < 2 {
+		log.Fatal("Usage: cli <command> [args...]")
+	}
+
+	cmd := command{
+		name: os.Args[1],
+		arg:  os.Args[2:],
+	}
+
+	if err := cmds.run(s, cmd); err != nil {
+		log.Fatalf("Error: %v", err)
+	}
+
 }
