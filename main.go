@@ -13,8 +13,7 @@ func main() {
 		log.Fatalf("Error Reading: %v", err)
 	}
 
-	cfg, err = cfg.SetUser("nate")
-	if err != nil {
+	if err = cfg.SetUser("nate"); err != nil {
 		log.Fatalf("Setting User Reading: %v", err)
 	}
 

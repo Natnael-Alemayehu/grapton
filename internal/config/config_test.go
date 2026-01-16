@@ -46,11 +46,11 @@ func TestSetUser(t *testing.T) {
 
 	for i, tc := range usecases {
 		t.Run(tc.name, func(t *testing.T) {
-			cfg := Config{
+			actual := Config{
 				DBURL:           "postgres://example",
 				CurrentUserName: "nate",
 			}
-			actual, err := cfg.SetUser("changed nate")
+			err := actual.SetUser("changed nate")
 			if err != nil {
 				t.Errorf("TEST: %d - NAME: %v - ERROR: %v", i, tc.name, err)
 				return

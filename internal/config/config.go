@@ -34,34 +34,35 @@ func Read() (Config, error) {
 	return conf, nil
 }
 
-func (cfg *Config) SetUser(name string) (Config, error) {
+func (cfg *Config) SetUser(name string) error {
 
 	if name == "" {
-		return Config{}, errors.New("empty names are not allowed")
+		return errors.New("empty names are not allowed")
 	}
 
 	fpath, err := getConfigFilePath()
 	if err != nil {
-		return Config{}, err
+		return err
 	}
 
 	data, err := os.ReadFile(fpath)
 	if err != nil {
-		return Config{}, fmt.Errorf("error reading config file: %v", err)
+		return fmt.Errorf("error reading config file: %v", err)
 	}
 
-	var conf Config
+	var conf *Config
 	if err := json.Unmarshal(data, &conf); err != nil {
-		return Config{}, fmt.Errorf("unmarshal error: %v", err)
+		return fmt.Errorf("unmarshal error: %v", err)
 	}
 
 	conf.CurrentUserName = name
+	cfg.CurrentUserName = name
 
 	if err := write(conf); err != nil {
-		return Config{}, err
+		return err
 	}
 
-	return conf, nil
+	return nil
 }
 
 func getConfigFilePath() (string, error) {
@@ -75,7 +76,7 @@ func getConfigFilePath() (string, error) {
 	return fpath, nil
 }
 
-func write(cfg Config) error {
+func write(cfg *Config) error {
 	newConf, err := json.Marshal(cfg)
 	if err != nil {
 		return err
