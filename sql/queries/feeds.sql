@@ -9,3 +9,19 @@ VALUES (
     $6
 )
 RETURNING *;
+
+-- name: ListFeed :many
+SELECT * from feeds;
+
+-- name: FeedDetail :many
+SELECT 
+    f.id AS feed_id,
+    f.created_at AS feed_created_at, 
+    f.updated_at AS feed_updated_at, 
+    f.name AS feed_name, 
+    f.url AS feed_url,
+    u.name AS user_name,
+    u.id AS user_id
+
+FROM feeds f
+JOIN users u ON u.id = f.user_id;

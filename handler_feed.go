@@ -52,3 +52,17 @@ func handlerAddFeed(s *state, cmd command) error {
 
 	return nil
 }
+
+func handlerListFeeds(s *state, _ command) error {
+	feeds, err := s.db.FeedDetail(context.Background())
+	if err != nil {
+		return err
+	}
+
+	for _, feed := range feeds {
+		fmt.Printf("FeedName: %v\n", feed.FeedName)
+		fmt.Printf("\t- URL: %v    - name: %v\n", feed.FeedUrl, feed.UserName)
+	}
+
+	return nil
+}

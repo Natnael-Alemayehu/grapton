@@ -14,6 +14,9 @@ FROM users
 WHERE name ILIKE $1
 LIMIT 1;
 
+-- name: QueryUserByID :one
+SELECT * FROM users where id=$1;
+
 -- name: QueryUsers :many
 SELECT * FROM users;
 

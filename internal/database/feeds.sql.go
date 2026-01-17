@@ -54,3 +54,92 @@ func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) (Feed, e
 	)
 	return i, err
 }
+
+const feedDetail = `-- name: FeedDetail :many
+SELECT 
+    f.id AS feed_id,
+    f.created_at AS feed_created_at, 
+    f.updated_at AS feed_updated_at, 
+    f.name AS feed_name, 
+    f.url AS feed_url,
+    u.name AS user_name,
+    u.id AS user_id
+
+FROM feeds f
+JOIN users u ON u.id = f.user_id
+`
+
+type FeedDetailRow struct {
+	FeedID        uuid.UUID
+	FeedCreatedAt time.Time
+	FeedUpdatedAt time.Time
+	FeedName      string
+	FeedUrl       string
+	UserName      string
+	UserID        uuid.UUID
+}
+
+func (q *Queries) FeedDetail(ctx context.Context) ([]FeedDetailRow, error) {
+	rows, err := q.db.QueryContext(ctx, feedDetail)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FeedDetailRow
+	for rows.Next() {
+		var i FeedDetailRow
+		if err := rows.Scan(
+			&i.FeedID,
+			&i.FeedCreatedAt,
+			&i.FeedUpdatedAt,
+			&i.FeedName,
+			&i.FeedUrl,
+			&i.UserName,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listFeed = `-- name: ListFeed :many
+SELECT id, created_at, updated_at, name, url, user_id from feeds
+`
+
+func (q *Queries) ListFeed(ctx context.Context) ([]Feed, error) {
+	rows, err := q.db.QueryContext(ctx, listFeed)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Feed
+	for rows.Next() {
+		var i Feed
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Url,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
