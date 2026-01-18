@@ -3,6 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
+	"github.com/araddon/dateparse"
+	"github.com/google/uuid"
+	"github.com/lib/pq"
+	"github.com/natnael-alemayehu/grapton/internal/database"
 )
 
 func scrapeFeeds(s *state) error {
@@ -21,9 +27,31 @@ func scrapeFeeds(s *state) error {
 		return err
 	}
 
-	for _, val := range rss.Channel.Item {
-		fmt.Printf("  -%v \n", val.Title)
-	}
+	for _, post := range rss.Channel.Item {
+		pAt, err := dateparse.ParseAny(post.PubDate)
+		if err != nil {
+			return fmt.Errorf("post published at formatting error: %v", err)
+		}
+		postParam := database.CreatePostParams{
+			ID:          uuid.New(),
+			CreatedAt:   time.Now(),
+			UpdatedAt:   time.Now(),
+			Title:       post.Title,
+			Url:         post.Link,
+			Description: post.Description,
+			PublishedAt: pAt,
+			FeedID:      feed.ID,
+		}
+		_, err = s.db.CreatePost(context.Background(), postParam)
+		if err != nil {
+			if pqErr, ok := err.(*pq.Error); ok {
+				if pqErr.Code == "23505" {
+					continue
+				}
+			}
+			return err
+		}
 
+	}
 	return nil
 }
