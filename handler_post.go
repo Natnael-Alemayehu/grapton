@@ -28,8 +28,12 @@ func handlerBrowsePosts(s *state, cmd command, usr database.User) error {
 		return err
 	}
 
-	for _, val := range posts {
-		fmt.Printf("  - PostTitle: %v, \tpost link: %v, \tpublished at: %v\n", val.PostTitle, val.PostUrl, val.PublishedAt)
+	for _, post := range posts {
+		fmt.Printf("%s from %s\n", post.PublishedAt.Format("Mon Jan 2"), post.FeedsName)
+		fmt.Printf("--- %s ---\n", post.PostTitle)
+		fmt.Printf("    %v\n", post.Description)
+		fmt.Printf("Link: %s\n", post.PostUrl)
+		fmt.Println("=====================================")
 	}
 
 	return nil
