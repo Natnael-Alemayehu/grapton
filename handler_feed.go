@@ -20,18 +20,13 @@ func handerFeedAggregator(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, usr database.User) error {
 	if len(cmd.arg) != 2 {
 		return fmt.Errorf("addfeed argument needs name and feedurl")
 	}
 
 	name := cmd.arg[0]
 	url := cmd.arg[1]
-
-	usr, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("GetUser in addfeed error: %v", err)
-	}
 
 	dbfeed := database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -42,13 +37,26 @@ func handlerAddFeed(s *state, cmd command) error {
 		UserID:    usr.ID,
 	}
 
-	feed, err := s.db.CreateFeed(context.Background(), dbfeed)
+	newFeed, err := s.db.CreateFeed(context.Background(), dbfeed)
 	if err != nil {
 		return err
 	}
 
+	cff := database.CreateFeedFollowsParams{
+		ID:        uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		UserID:    usr.ID,
+		FeedID:    newFeed.ID,
+	}
+	createdFeed, err := s.db.CreateFeedFollows(context.Background(), cff)
+	if err != nil {
+		return fmt.Errorf("Create Feed Follows: %v", err)
+	}
+
 	fmt.Println("Feed successfully added")
-	fmt.Printf("%v\n", feed)
+	fmt.Printf("Feed successfully added to add feed: %v", createdFeed.FeedName)
+	fmt.Printf("%v\n", newFeed)
 
 	return nil
 }

@@ -25,3 +25,9 @@ SELECT
 
 FROM feeds f
 JOIN users u ON u.id = f.user_id;
+
+-- name: GetFeedByName :one
+SELECT * FROM feeds WHERE name ILIKE $1 LIMIT 1;
+
+-- name: GetFeedByURL :one
+SELECT * FROM feeds WHERE url ILIKE $1 LIMIT 1;
