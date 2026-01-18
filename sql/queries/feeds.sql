@@ -30,4 +30,19 @@ JOIN users u ON u.id = f.user_id;
 SELECT * FROM feeds WHERE name ILIKE $1 LIMIT 1;
 
 -- name: GetFeedByURL :one
-SELECT * FROM feeds WHERE url ILIKE $1 LIMIT 1;
+SELECT * FROM feeds WHERE url LIKE $1 LIMIT 1;
+
+-- name: MarkFeedFetched :one 
+UPDATE feeds SET 
+updated_at = now(),
+last_fetched_at = now()
+WHERE id= $1
+RETURNING *;
+
+
+-- name: GetNextFeedToFetch :one
+SELECT * FROM feeds 
+ORDER BY 
+    last_fetched_at NULLS FIRST,
+    last_fetched_at ASC
+LIMIT 1;

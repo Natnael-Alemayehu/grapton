@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,14 +11,24 @@ import (
 )
 
 func handerFeedAggregator(s *state, cmd command) error {
-	feed, err := fetchFeed(context.Background(), "https://www.wagslane.dev/index.xml")
+	if len(cmd.arg) == 0 {
+		return errors.New("agg expects a time between requests like 1s, 5s, 1m, 5m ...")
+	}
+
+	timereq, err := time.ParseDuration(cmd.arg[0])
 	if err != nil {
 		return err
 	}
+	fmt.Printf("Collecting feeds every %v \n", timereq)
 
-	fmt.Printf("Feed: %+v\n", feed)
+	ticker := time.NewTicker(timereq)
 
-	return nil
+	for ; ; <-ticker.C {
+		err := scrapeFeeds(s)
+		if err != nil {
+			return err
+		}
+	}
 }
 
 func handlerAddFeed(s *state, cmd command, usr database.User) error {
